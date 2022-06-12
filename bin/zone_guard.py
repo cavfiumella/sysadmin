@@ -304,6 +304,7 @@ class zone:
 
         logging.debug(f'Zone "{self._name}" scan hosts.')
 
+        self.update()
         diff = []
 
         for x in self._interfaces + self._sources:
