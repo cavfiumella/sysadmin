@@ -1,35 +1,130 @@
 #!/bin/bash
-#
-# Duplicity encrypted backup
-#
-# Complete backup is forced after 3 days and backups older than 1 week are
-# discarded
-#
+
+print_help() {
+	echo 'Duplicity backup.'
+	echo
+	echo 'Usage: '
+	echo "  `basename $BASH_SOURCE` [-h|--help] [-k|--key KEY] [-F|--full-if-older-than TIME] [-R|--remove-older-than TIME] [-D|--dry-run] [-q|--quiet] <src> <dst>"
+	echo
+	echo 'Args:'
+	echo '  src                                path to backup'
+	echo '  dst                                target collection for backup'
+	echo
+	echo 'Options:'
+	echo '  -h --help                          print usage and help'
+	echo '  -k --key KEY                       GPG key ID for encryption'
+	echo '  -F --full-if-older-than TIME       execute a full backup only if the last one is older than TIME (time formats given by duplicity)'
+	echo '  -R --remove-older-than TIME        remove backups older than TIME (time formats given by duplicity)'
+	echo '  -D --dry-run                       print commands without executing'
+	echo '  -q --quiet                         do not print progress and statistics at the end'
+
+	return 0
+}
 
 
 main() {
-	if [[ $# -lt 3 ]]; then
-		echo GPG key ID, source and target are needed! 1>&2
+	
+	key=''
+	full=''
+	remove=''
+	dry=false
+	quiet=false
+	args=()
+
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+			-h|--help)
+				print_help
+				return 0
+				;;
+			-k|--key)
+				key="$2"
+				shift
+				shift
+				;;
+			-F|--full-if-older-than)
+				full="$2"
+				shift
+				shift
+				;;
+			-R|--remove-older-than)
+				remove="$2"
+				shift
+				shift
+				;;
+			-D|--dry-run)
+				dry=true
+				shift
+				;;
+			-q|--quiet)
+				quiet=true
+				shift
+				;;
+			-*|--*)
+				echo Uknown option $1 1>&2
+				echo
+				print_help
+				return 1
+				;;
+			*)
+				args+=("$1")
+				shift
+				;;
+		esac
+	done
+
+	if [[ ${#args[@]} -lt 2 ]]; then
+		echo Source and target are needed! 1>&2
 		return 1
 	fi
 
-	gpg="$1"
-	src="$2"
-	dst="$3"
+	src="${args[0]}"
+	dst="${args[1]}"
 
-	duplicity incremental \
-		--full-if-older-than 3D \
-		--encrypt-key "$gpg" \
-		--asynchronous-upload \
-		--s3-use-multiprocessing \
-		--progress \
-		"$src" "$dst"
+	# backup
+	cmd='duplicity incr'
+	cmd="$cmd --asynchronous-upload --s3-use-multiprocessing"
+	
+	if [[ -n $key ]]; then
+		cmd="$cmd --encrypt-key '$key'"
+	else
+		cmd="$cmd --no-encrypt"
+	fi
 
+	if [[ -n $full ]]; then
+		cmd="$cmd --full-if-older-than '$full'"
+	fi
+
+	if [[ $quiet = true ]]; then
+		cmd="$cmd --no-print-statistics"
+	else
+		cmd="$cmd --progress"
+	fi
+
+	cmd="$cmd '$src' '$dst'"
+
+	if [[ $dry = true ]]; then
+		echo $cmd
+	else
+		eval $cmd
+	fi
+	
 	if [[ $? -ne 0 ]]; then
 		return 1
 	fi
 
-	duplicity remove-older-than 1W --force "$dst"
+	# remove older backups
+	if [[ -z $remove ]]; then
+		return 0
+	fi
+
+	cmd="duplicity remove-older-than '$remove' --force '$dst'"
+
+	if [[ $dry = true ]]; then
+		echo $cmd
+	else
+		eval $cmd
+	fi
 
 	if [[ $? -ne 0 ]]; then
 		return 1
