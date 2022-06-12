@@ -69,7 +69,9 @@ main() {
 			message="${message}From: $from \n"
 		fi
 
-		message="${message}To: $to \nSubject $subject \n\n`env`"
+		message="${message}To: $to \n"
+		message="${message}Subject: $subject \n"
+		message="${message}\n`env`\n"
 
 		if [[ $dry = true ]]; then
 			echo -e "$message"
