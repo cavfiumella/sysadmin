@@ -392,11 +392,11 @@ if __name__ == '__main__':
     zones = execute('firewall-cmd --get-zones').split()
     
     parser = ArgumentParser(description='Scan firewalld zones for connected device and generate a json schema of the results.')
-    parser.add_argument('-t', '--timeout', default=10, type=int, help='timeout in seconds between successive networks scansions')
+    parser.add_argument('-t', '--timeout', default=10, type=int, help='timeout in seconds between successive networks scansions (default: 10)')
     parser.add_argument('-D', '--debug', action='store_true', help='debug mode')
     parser.add_argument(
         'zones', metavar='zone', action='append', choices=zones,
-        help='firewalld zones to scan (multiple zones can be given; default: scan all zones)'
+        help='firewalld zones to scan (multiple zones can be given)'
     )
     
     args = parser.parse_args()
