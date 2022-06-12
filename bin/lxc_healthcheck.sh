@@ -1,10 +1,23 @@
 #!/bin/bash
-#
-# Check LXC containers connectivity 
-#
 
-SERVICE=snap.lxd.daemon.service # lxd service
-WAIT_TIME=60 # containers restart waiting time
+print_help() {
+	echo 'Check LXC container connectivity.'
+	echo
+	echo 'Usage:'
+	echo "  `basename $BASH_SOURCE` [-h|--help] <instance>"
+	echo
+	echo 'Args:'
+	echo '  instance      instance to check'
+	echo
+	echo 'Options:'
+	echo '  -h --help     print usage and help'
+	echo '  -S --service  LXD daemon service (default: snap.lxd.daemon.service)'
+	echo '  -T --timeout  timeout in seconds for daemon restart (default: 60)'
+
+	return 0
+}
+
+
 
 
 # check is instance exists / is valid
@@ -17,7 +30,7 @@ exists() {
 	container="$1"
 
 	lxc exec "$container" -- echo > /dev/null
-	return
+	return $?
 }
 
 
@@ -35,83 +48,71 @@ is_online() {
 }
 
 
-# check connection of multiple containers
-healthcheck() {
+main() {
 
-	containers="$@"
+	service=snap.lxd.daemon.service
+	timeout=60
+	args=()
 
-	for container in "$containers"; do
-		is_online "$container"
-		if [[ $? -ne 0 ]]; then
-			return 1
-                fi
-        done
-
-        return 0
-}
-
-
-# print connectivity status of passed containers
-print_status() {
-	if [[ $# -eq 0 ]]; then
-		return 0
-	fi
-	
-	containers="$@"
-
-	echo Connected containers:
-
-	for container in "$containers"; do
-		echo -n "  $container: "
-
-		is_connected "$container"
-		if [[ $? -eq 0 ]]; then
-			echo yes
-		else
-			echo no
-		fi
+	while [[ $# -gt 0 ]]; do
+		case $1 in
+			-h|--help)
+				print_help
+				return 0
+				;;
+			-S|--service)
+				service="$2"
+				shift
+				shift
+				;;
+			-T|--timeout)
+				timeout="$2"
+				shift
+				shift
+				;;
+			-*|--*)
+				echo Unknonw option $1 1>&2
+				echo
+				print_help
+				return 1
+				;;
+			*)
+				args+=("$1")
+				shift
+				;;
+		esac
 	done
 
-	return 0
-}
-
-
-main() {
-	if [[ $# -lt 1 ]]; then
-        	echo At least one container name is needed! 1>&2
+	if [[ ${#args[@]} -lt 1 ]]; then
+        	echo Container name is needed! 1>&2
 	        return 1
 	fi
 
-	containers="$@"
+	container="${args[0]}"
 
-	# check if instances exist
-	for container in "$containers"; do
-		exists "$container"
-		if [[ $? -ne 0 ]]; then
-			return 1
-		fi
-	done
-
-	# restart lxd service
-	healthcheck "$containers"
+	exists "$container"
 	if [[ $? -ne 0 ]]; then
-		echo Healthcheck failed!
+		return 1
+	fi
+
+	is_online "$container"
+	if [[ $? -ne 0 ]]; then
+		echo $container is not connected!
 
 		echo Restarting LXD daemon...
-        	systemctl restart "$SERVICE"
+        	systemctl restart "$service"
 
-		echo Waiting $WAIT_TIME...
-        	sleep "$WAIT_TIME"
+		echo Waiting $timeout...
+        	sleep "$timeout"
 	else
 		echo All containers are connected.
         	return 0
 	fi
 
 	# healthcheck after restart
-	healthcheck "$containers"
+	is_online "$container"
 	if [[ $? -ne 0 ]]; then
-        	echo Containers recovery failed! 1>&2
-		print_status 1>&2 
+        	echo Connectivity recovery for instance $container failed! 1>&2
 		return 1
 	fi
 
