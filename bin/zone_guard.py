@@ -317,7 +317,7 @@ class zone:
 
             diff += [df]
 
-        logging.debug(f'Zone hosts diff: {json.dumps(diff)}')
+        logging.debug(f'Zone hosts diff: {json.dumps(diff, indent=_JSON_INDENT)}')
 
         return diff
 
