@@ -14,8 +14,8 @@ import signal
 
 _DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 _JSON_INDENT = 4
-_LOG_LEVEL = logging.INFO
-_LOG_FORMAT = '[{asctime}] {levelname} - {message}'
+_LOG_LEVEL = logging.WARNING
+_LOG_FORMAT = '[{levelname}] {message}'
 
 logging.basicConfig(format = _LOG_FORMAT, datefmt = _DATE_FORMAT, style='{', level = _LOG_LEVEL)
 logging.captureWarnings(True)
@@ -23,7 +23,11 @@ logging.captureWarnings(True)
 def signal_handler(sig, stack):
     '''SIGINT handler for a smooth exit.'''
     
-    logging.info('SIGINT received. Exiting...')
+    msg = 'SIGINT received. Exiting...'
+
+    logging.info(msg)
+    print(msg)
+
     sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
@@ -423,10 +427,14 @@ def main(zones: list, timeout: int = 10) -> int:
                 if 'Device' in x: net += ' (' + x["Device"] + ')'
 
                 for h in x['New hosts']:
-                    logging.info(f'NEW  HOST {h["Hostname"]} ({h["IP address"]}) in {net}.')
+                    msg = f'NEW  HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
+                    logging.info(msg)
+                    print(msg)
 
                 for h in x['Lost hosts']:
-                    logging.info(f'LOST HOST {h["Hostname"]} ({h["IP address"]}) in {net}.')
+                    msg = f'LOST HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
+                    logging.info(msg)
+                    print(msg)
 
         logging.debug(f'Sleep {timeout} seconds.')
         sleep(timeout)
