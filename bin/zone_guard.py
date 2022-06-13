@@ -141,16 +141,13 @@ class _network:
         lost_hosts = []
         new_hosts = []
        
-        df_old = [h.to_dict() for h in self._hosts]
-        df_new = [h.to_dict() for h in hosts]
+        for i, h in enumerate(self._hosts):
+            if h not in hosts:
+                lost_hosts += [h]
 
-        for i, h in enumerate(df_old):
-            if h not in df_new:
-                lost_hosts += [self._hosts[i]]
-
-        for i, h in enumerate(df_new):
-            if h not in df_old:
-                new_hosts += [hosts[i]]
+        for i, h in enumerate(hosts):
+            if h not in self._hosts:
+                new_hosts += [h]
 
         self._hosts = hosts
 
