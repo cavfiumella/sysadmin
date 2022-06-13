@@ -75,6 +75,10 @@ class host:
         self._inet = inet
 
 
+    def __eq__(self, other) -> bool:
+        return self._hostname == other._hostname and self._inet == other._inet
+
+
     def to_dict(self) -> dict:
         '''Reurn {'Hostname': hostname, 'IP address': inet}.'''
 
@@ -102,6 +106,10 @@ class _network:
         inet = str(inet)        
         
         self._inet = inet
+
+
+    def __eq__(self, other) -> bool:
+        return self._inet == other._inet
 
 
     def scan_hosts(self, /) -> tuple:
@@ -166,6 +174,10 @@ class interface(_network):
         
         self._dev = dev
         _network.__init__(self, self._get_inet())
+
+
+    def __eq__(self, other):
+        return self._dev == other._dev and self._inet == other._inet
 
 
     def _get_inet(self) -> Optional[str]:
@@ -290,8 +302,47 @@ class zone:
         
         logging.debug(f'Update zone "{self._name}".')
 
-        self._interfaces = [interface(dev) for dev in self._get_values('interfaces')]
-        self._sources = [source(inet) for inet in self._get_values('sources')]
+        interfaces = [interface(dev) for dev in self._get_values('interfaces')]
+        sources = [source(inet) for inet in self._get_values('sources')]
+
+        for i in interfaces:
+            if i not in self._interfaces:
+                logging.debug(f'New interface "{i._dev}" in zone "{self._name}".')
+                self._interfaces.append(i)
+
+        for s in sources:
+            if s not in self._sources:
+                logging.debug(f'New source "{s._inet}" in zone "{self._name}".')
+                self._sources.append(s)
+
+        to_remove = ([], [])
+
+        for i,I in enumerate(self._interfaces):
+            if I not in interfaces:
+                to_remove[0] += [i]
+
+        for i,S in enumerate(self._sources):
+            if S not in sources:
+                to_remove[1] += [i]
+
+        interfaces = []
+        sources = []
+
+        for i,I in enumerate(self._interfaces):
+            if i in to_remove[0]:
+                logging.debug(f'Lost interface "{I._dev}" in zone "{self._name}˝.')
+                continue
+
+            interfaces += [I]
+
+        for i,S in enumerate(self._sources):
+            if i in to_remove[1]:
+                logging.debug(f'Lost source "{S._inet}" in zone "{self._name}˝.')
+
+            sources += [S]
+
+        self._interfaces = interfaces
+        self._sources = sources
 
 
     def scan_hosts(self) -> list:
