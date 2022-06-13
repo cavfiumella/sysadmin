@@ -1,5 +1,5 @@
 [Unit]
-Description='Monitor interfaces and source of Firewalld zones'
+Description='Monitor interfaces and sources of a Firewalld zone'
 
 Wants=network.target
 After=network.target
