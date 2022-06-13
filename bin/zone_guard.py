@@ -4,7 +4,6 @@ from argparse import ArgumentParser
 import shlex
 from subprocess import Popen, PIPE, SubprocessError
 import sys
-from typing import Optional
 from warnings import warn
 from time import sleep
 import logging
@@ -64,8 +63,8 @@ def execute(cmd: str, /) -> str:
 class host:
     '''Host.'''
 
-    _hostname: Optional[str] = None
-    _inet: Optional[str] = None
+    _hostname: str = 'None'
+    _inet: str = 'None'
 
 
     def __init__(self, hostname: str, inet: str, /):
@@ -99,7 +98,7 @@ class host:
 class _network:
     '''Base class for firewalld zone sources and interfaces.'''
 
-    _inet: Optional[str] = None
+    _inet: str = 'None'
     _hosts: list = []
 
 
@@ -127,7 +126,12 @@ class _network:
 
         inet = self._inet
 
-        out = execute(f'nmap -sn "{inet}"')
+        if inet != 'None':
+            out = execute(f'nmap -sn "{inet}"')
+        else:
+            logging.debug('inet is None: ignoring hosts scansion.')
+            out = ''
+
         hosts = []
 
         for line in out.split('\n'):
@@ -164,7 +168,7 @@ class _network:
 class interface(_network):
     '''Network interface.'''
     
-    _dev: Optional[str] = None
+    _dev: str = 'None'
 
 
     def __init__(self, dev: str, /):
@@ -181,11 +185,11 @@ class interface(_network):
         return self._dev == other._dev and self._inet == other._inet
 
 
-    def _get_inet(self) -> Optional[str]:
+    def _get_inet(self) -> str:
         '''Get interface IP address.'''
 
         dev = self._dev
-        inet = None
+        inet = 'None'
 
         # if interface does not exist just return None
         try:
@@ -260,7 +264,7 @@ class source(_network):
 class zone:
     '''Firewalld zone.'''
 
-    _name: Optional[str] = None
+    _name: str = 'None'
     _interfaces: list = []
     _sources: list = []
 
