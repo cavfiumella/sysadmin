@@ -25,7 +25,7 @@ def signal_handler(sig, stack):
     msg = 'SIGINT received. Exiting...'
 
     logging.info(msg)
-    print(msg)
+    print(msg, flush=True)
 
     sys.exit(0)
 
@@ -433,12 +433,12 @@ def main(zones: list, timeout: int = 10) -> int:
                 for h in x['New hosts']:
                     msg = f'NEW  HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
                     logging.info(msg)
-                    print(msg)
+                    print(msg, flush=True)
 
                 for h in x['Lost hosts']:
                     msg = f'LOST HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
                     logging.info(msg)
-                    print(msg)
+                    print(msg, flush=True)
 
         logging.debug(f'Sleep {timeout} seconds.')
         sleep(timeout)
@@ -447,7 +447,7 @@ def main(zones: list, timeout: int = 10) -> int:
 if __name__ == '__main__':
     
     if execute('whoami') != 'root':
-        print('Who are you? You are not root!', file=sys.stderr)
+        print('Who are you? You are not root!', file=sys.stderr, flush=True)
         sys.exit(1)
 
     zones = execute('firewall-cmd --get-zones').split()
@@ -471,5 +471,5 @@ if __name__ == '__main__':
     try:
         sys.exit(main(args.zones, args.timeout))
     except SubprocessError as ex:
-        print(ex.args[0], file=sys.stderr)
+        print(ex.args[0], file=sys.stderr, flush=True)
         sys.exit(1)
