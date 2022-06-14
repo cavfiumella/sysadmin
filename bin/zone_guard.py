@@ -431,7 +431,7 @@ def main(zones: list, timeout: int = 10) -> int:
                 if 'Device' in x: net += ' (' + x["Device"] + ')'
 
                 for h in x['New hosts']:
-                    msg = f'NEW  HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
+                    msg = f'NEW HOST {h["Hostname"]} ({h["IP address"]}) in {net}.'
                     logging.info(msg)
                     print(msg, flush=True)
 
