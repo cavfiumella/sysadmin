@@ -13,5 +13,5 @@ ConditionUser=0
 WantedBy=multi-user.target
 
 [Service]
-ExecStart=/root/bin/zone_guard.py %i
+ExecStart=%h/bin/zone_guard.py %i
 User=root
