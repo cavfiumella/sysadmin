@@ -1,7 +1,8 @@
 #!/bin/bash
 
-DEBIAN_FRONTEND=noninteractive
+set -e
 
+DEBIAN_FRONTEND=noninteractive
 
 
 print_help() {
@@ -29,7 +30,6 @@ add_interfaces() {
 
   for interface in "$interfaces"; do
     firewall-cmd --permanent --zone "$zone" --add-interface "$interface" > /dev/null
-    if [ $? -ne 0 ]; then return $?; fi
   done
  
   return 0
@@ -54,19 +54,19 @@ main() {
     return 1
   fi
 
-  echo -n "Hostname [localhost]: " && read host
+  echo -n "Hostname [localhost]: "
+  read host
   hostnamectl hostname "$host"
-  if [ $? -ne 0 ]; then return $?; fi
   
-  echo -n "Timezone [UTC]: " && read tz
+  echo -n "Timezone [UTC]: "
+  read tz
   if [ -z "$tz" ]; then tz=UTC; fi
-  timedatectl set-ntp true && timedatectl set-timezone "$tz"
-  if [ $? -ne 0 ]; then return $?; fi
+  timedatectl set-ntp true
+  timedatectl set-timezone "$tz"
   
   echo -e '\nUpdating repositories...\n'
   
   apt update -y > /dev/null
-  if [ $? -ne 0 ]; then return $?; fi
 
   echo -e '\nInstalling packages...\n'
 
@@ -83,44 +83,40 @@ main() {
     >> /etc/ssh/sshd_config.d/login.conf
 
   systemctl enable --now ssh
-  if [ $? -ne 0 ]; then return $?; fi
 
   echo -e '\nConfiguring fail2ban...\n'
 
   systemctl enable --now fail2ban
-  if [ $? -ne 0 ]; then return $?; fi
 
   echo -e '\nConfiguring firewalld...\n'
 
   systemctl enable --now firewalld
-  if [ $? -ne 0 ]; then return $?; fi
 
-  echo -en '\nWhich firewall zones should allow ssh? ' && read -a zones
-  if [ $? -ne 0 ]; then return $?; fi
+  echo -en '\nWhich firewall zones should allow ssh? '
+  read -a zones
 
   for zone in "$zones"; do
     firewall-cmd --add-service ssh --permanent --zone "$zone" > /dev/null
-    if [ $? -ne 0 ]; then return $?; fi
   done
  
   for zone in "$zones"; do
-    echo -n "Which interfaces should be in firewall zone $zone? " \
-      && read -a interfaces
-    if [ $? -ne 0 ]; then return $?; fi
-
+    echo -n "Which interfaces should be in firewall zone $zone? "
+    read -a interfaces
     add_interfaces "$zone" "$interfaces"
   done
 
   firewall-cmd --reload > /dev/null
   if [ $? -ne 0 ]; then return $?; fi
 
-  echo -n 'Do you want to configure MFA for ssh? [Yn] ' && read answer
+  echo -n 'Do you want to configure MFA for ssh? [Yn] '
+  read answer
 
   if [ "$answer" != 'y' ] && [ "$answer" != 'Y' ] && [ -n "$answer" ]; then
     return 0
   fi
  
-  echo -n 'Which user should have MFA configured? ' && read user
+  echo -n 'Which user should have MFA configured? '
+  read user
   sudo -u "$user" google-authenticator
   if [ $? -ne 0 ]; then return $?; fi
 
@@ -133,7 +129,6 @@ main() {
     >> /etc/pam.d/sshd
 
   systemctl restart ssh
-  if [ $? -ne 0 ]; then return $?; fi
 
   echo -e '\nConfiguration completed.'
   return 0

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+
+
 print_help() {
 	echo 'Notify logins by email.'
 	echo 'To use this script for ssh logins add the following line to /etc/pam.d/sshd:'

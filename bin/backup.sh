@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -e
+
+
 print_help() {
 	echo 'Duplicity backup.'
 	echo
@@ -109,10 +112,6 @@ main() {
 		eval $cmd
 	fi
 	
-	if [[ $? -ne 0 ]]; then
-		return 1
-	fi
-
 	# remove older backups
 	if [[ -z $remove ]]; then
 		return 0
@@ -124,10 +123,6 @@ main() {
 		echo $cmd
 	else
 		eval $cmd
-	fi
-
-	if [[ $? -ne 0 ]]; then
-		return 1
 	fi
 
 	return 0
