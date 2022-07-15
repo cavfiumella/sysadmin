@@ -7,7 +7,7 @@ print_help() {
 	echo 'Duplicity backup.'
 	echo
 	echo 'Usage: '
-	echo "  `basename $BASH_SOURCE` [-h|--help] [-k|--key KEY] [-F|--full-if-older-than TIME] [-R|--remove-older-than TIME] [-D|--dry-run] [-q|--quiet] <src> <dst>"
+	echo "  `basename $BASH_SOURCE` [-h|--help] [-k|--key KEY] [-F|--full-if-older-than TIME] [-R|--remove-older-than TIME] [-E|--exclude] [-D|--dry-run] [-q|--quiet] <src> <dst>"
 	echo
 	echo 'Args:'
 	echo '  src                                path to backup'
@@ -18,6 +18,7 @@ print_help() {
 	echo '  -k --key KEY                       GPG key ID for encryption'
 	echo '  -F --full-if-older-than TIME       execute a full backup only if the last one is older than TIME (time formats given by duplicity)'
 	echo '  -R --remove-older-than TIME        remove backups older than TIME (time formats given by duplicity)'
+	echo '  -E --exclude                       exclude a path from backup (can be specified multiple times)'
 	echo '  -D --dry-run                       print commands without executing'
 	echo '  -q --quiet                         do not print progress and statistics at the end'
 
@@ -30,6 +31,7 @@ main() {
 	key=''
 	full=''
 	remove=''
+	exclude=()
 	dry=false
 	quiet=false
 	args=()
@@ -52,6 +54,11 @@ main() {
 				;;
 			-R|--remove-older-than)
 				remove="$2"
+				shift
+				shift
+				;;
+			-e|--exclude)
+				exclude+=("$2")
 				shift
 				shift
 				;;
@@ -97,6 +104,12 @@ main() {
 	if [[ -n $full ]]; then
 		cmd="$cmd --full-if-older-than '$full'"
 	fi
+
+	for path in "${exclude[@]}"; do
+		if [ -n "$path" ]; then
+			cmd="$cmd --exclude '$path'"
+		fi
+	done
 
 	if [[ $quiet = true ]]; then
 		cmd="$cmd --no-print-statistics"
