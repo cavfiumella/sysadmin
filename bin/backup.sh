@@ -59,7 +59,7 @@ main() {
 				shift
 				shift
 				;;
-			-e|--exclude)
+			-E|--exclude)
 				exclude+=("$2")
 				shift
 				shift
