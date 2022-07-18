@@ -19,6 +19,7 @@ print_help() {
 	echo '  -F --full-if-older-than TIME       execute a full backup only if the last one is older than TIME (time formats given by duplicity)'
 	echo '  -R --remove-older-than TIME        remove backups older than TIME (time formats given by duplicity)'
 	echo '  -E --exclude                       exclude a path from backup (can be specified multiple times)'
+	echo '  --exclude-if-present               look at duplicity man'
 	echo '  -D --dry-run                       print commands without executing'
 	echo '  -q --quiet                         do not print progress and statistics at the end'
 
@@ -27,11 +28,12 @@ print_help() {
 
 
 main() {
-	
+
 	key=''
 	full=''
 	remove=''
 	exclude=()
+	exclude_if_present=''
 	dry=false
 	quiet=false
 	args=()
@@ -59,6 +61,11 @@ main() {
 				;;
 			-e|--exclude)
 				exclude+=("$2")
+				shift
+				shift
+				;;
+			--exclude-if-present)
+				exclude_if_present="$2"
 				shift
 				shift
 				;;
@@ -94,7 +101,7 @@ main() {
 	# backup
 	cmd='duplicity incr'
 	cmd="$cmd --asynchronous-upload --s3-use-multiprocessing"
-	
+
 	if [[ -n $key ]]; then
 		cmd="$cmd --encrypt-key '$key'"
 	else
@@ -111,6 +118,10 @@ main() {
 		fi
 	done
 
+	if [[ -n $exclude_if_present ]]; then
+		cmd="$cmd --exclude-if-present '$exclude_if_present'"
+	fi
+
 	if [[ $quiet = true ]]; then
 		cmd="$cmd --no-print-statistics"
 	else
@@ -124,7 +135,7 @@ main() {
 	else
 		eval $cmd
 	fi
-	
+
 	# remove older backups
 	if [[ -z $remove ]]; then
 		return 0
