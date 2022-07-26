@@ -41,19 +41,18 @@ main() {
     return 1
   fi
 
-  returncode=0
+  host="${args[0]}"
 
-  for host in "$args"; do
-    ping -c1 "$host" &>/dev/null
+  ping -c1 "$host" &>/dev/null
 
-    if [ $? -ne 0 ]; then
-      echo "$host is down!" 1>&2
-      returncode=1
-    fi
-  done
+  if [ $? -ne 0 ]; then
+    echo "$host is down!" 1>&2
+    return 1
+  fi
 
-  return $returncode
+  return 0
 }
+
 
 main "$@"
 exit $?
