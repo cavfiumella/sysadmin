@@ -84,9 +84,9 @@ main() {
   is_running "$stack"
   if [[ $? -ne 0 ]]; then
     echo Some service is not running! 1>&2
-    echo Stack $stack services: 1>&2
-    docker stack services "$stack" 1>&2
-
+    echo 1>&2
+    docker stack services "$stack" | head -n1 1>&2
+    docker stack services "$stack" | grep '0/' 1>&2
     return 1
   fi
   
