@@ -90,7 +90,6 @@ main() {
     return 1
   fi
   
-  echo All services are running.
   return 0
 }
 
