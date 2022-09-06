@@ -18,6 +18,7 @@ print_help() {
   echo '  -k --key KEY                       GPG key ID for encryption'
   echo '  -F --full-if-older-than TIME       execute a full backup only if the last one is older than TIME (time formats given by duplicity)'
   echo '  -R --remove-older-than TIME        remove backups older than TIME (time formats given by duplicity)'
+  echo '  -C                                 cleanup at the end'
   echo '  -E --exclude                       exclude a path from backup (can be specified multiple times)'
   echo '  --exclude-if-present               look at duplicity man'
   echo '  -D --dry-run                       print commands without executing'
@@ -32,6 +33,7 @@ main() {
   key=''
   full=''
   remove=''
+  cleanup=''
   exclude=()
   exclude_if_present=''
   dry=false
@@ -57,6 +59,10 @@ main() {
       -R|--remove-older-than)
         remove="$2"
         shift
+        shift
+        ;;
+      -C|--cleanup)
+        cleanup=true
         shift
         ;;
       -E|--exclude)
@@ -142,6 +148,18 @@ main() {
   fi
 
   cmd="duplicity remove-older-than '$remove' --force '$dst'"
+
+  if [[ $dry = true ]]; then
+    echo $cmd
+  else
+    eval $cmd
+  fi
+
+  if [[ -z $cleanup ]]; then
+    return 0
+  fi
+
+  cmd="duplicity cleanup --force '$dst'"
 
   if [[ $dry = true ]]; then
     echo $cmd
