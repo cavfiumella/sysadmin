@@ -155,6 +155,7 @@ main() {
     eval $cmd
   fi
 
+  # cleanup
   if [[ -z $cleanup ]]; then
     return 0
   fi
