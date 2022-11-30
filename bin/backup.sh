@@ -20,7 +20,7 @@ print_help() {
   echo '  -R --remove-older-than TIME        remove backups older than TIME (time formats given by duplicity)'
   echo '  -C                                 cleanup at the end'
   echo '  -E --exclude                       exclude a path from backup (can be specified multiple times)'
-  echo '  --exclude-if-present               look at duplicity man'
+  echo '  --include-filelist                 look at duplicity man'
   echo '  -D --dry-run                       print commands without executing'
   echo '  -q --quiet                         do not print progress and statistics at the end'
 
@@ -35,7 +35,7 @@ main() {
   remove=''
   cleanup=''
   exclude=()
-  exclude_if_present=''
+  include_filelist=''
   dry=false
   quiet=false
   args=()
@@ -70,8 +70,8 @@ main() {
         shift
         shift
         ;;
-      --exclude-if-present)
-        exclude_if_present="$2"
+      --include-filelist)
+        include_filelist="$2"
         shift
         shift
         ;;
@@ -124,8 +124,8 @@ main() {
     fi
   done
 
-  if [[ -n $exclude_if_present ]]; then
-    cmd="$cmd --exclude-if-present '$exclude_if_present'"
+  if [[ -n $include_filelist ]]; then
+    cmd="$cmd --include-filelist '$include_filelist'"
   fi
 
   if [[ $quiet = true ]]; then
