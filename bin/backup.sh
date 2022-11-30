@@ -7,7 +7,7 @@ print_help() {
   echo 'Duplicity backup.'
   echo
   echo 'Usage: '
-  echo "  `basename $BASH_SOURCE` [-h|--help] [-k|--key KEY] [-F|--full-if-older-than TIME] [-R|--remove-older-than TIME] [-E|--exclude] [-D|--dry-run] [-q|--quiet] <src> <dst>"
+  echo "  `basename $BASH_SOURCE` [-h|--help] [-k|--key KEY] [-F|--full-if-older-than TIME] [-R|--remove-older-than TIME] [-E|--exclude PATH] [-D|--dry-run] [-q|--quiet] <src> <dst>"
   echo
   echo 'Args:'
   echo '  src                                path to backup'
